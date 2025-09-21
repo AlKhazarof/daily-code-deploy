@@ -1,0 +1,16 @@
+{
+  "name": "daily-code-deploy",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
