@@ -1,0 +1,24 @@
+{
+  "name": "dcd-backend",
+  "version": "0.1.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "runner": "node runner.js"
+  },
+  "dependencies": {
+    "bullmq": "^5.7.5",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "ioredis": "^5.4.1",
+    "jsonwebtoken": "^9.0.2",
+    "passport": "^0.6.0",
+    "passport-github2": "^0.1.12",
+    "stripe": "^12.9.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
