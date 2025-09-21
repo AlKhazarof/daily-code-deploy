@@ -1,0 +1,151 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>DailyCodeDeploy — Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, Arial; padding: 24px; }
+    input, button { font-size: 16px; padding: 8px; margin: 4px 0; width: 100%; max-width: 420px; }
+    .card { max-width: 520px; border: 1px solid #EEE; padding: 16px; border-radius: 8px; margin-bottom: 16px; }
+    .muted { color: #666; font-size: 14px; }
+    .hidden { display: none; }
+    .repo { padding: 8px; border-bottom: 1px solid #f0f0f0; }
+  </style>
+</head>
+<body>
+  <div id="login" class="card">
+    <h1>DailyCodeDeploy — Demo</h1>
+    <p class="muted">Log in with GitHub to connect repos and subscribe.</p>
+    <button id="github-login">Login with GitHub</button>
+  </div>
+
+  <div id="dashboard" class="card hidden">
+    <h2>Welcome, <span id="user-name"></span>!</h2>
+    <p class="muted">Your repos:</p>
+    <div id="repos"></div>
+    <hr/>
+    <p class="muted">Subscribe (Stripe Checkout)</p>
+    <button id="checkout">Subscribe with Stripe</button>
+    <div id="checkout-msg" class="muted"></div>
+    <hr/>
+    <h3>Run a demo pipeline</h3>
+    <p class="muted">If you’re logged in with GitHub, you can also enter repo as owner/name to clone.</p>
+    <input id="repo" placeholder="owner/name (optional)" />
+    <input id="branch" placeholder="branch (optional, e.g. main)" />
+    <button id="run">Run pipeline</button>
+    <div id="run-result" class="muted"></div>
+    <pre id="logs" style="max-height:300px;overflow:auto;background:#fafafa;border:1px solid #eee;padding:8px"></pre>
+  </div>
+
+  <script>
+    const loginDiv = document.getElementById('login');
+    const dashboardDiv = document.getElementById('dashboard');
+    const userName = document.getElementById('user-name');
+    const reposDiv = document.getElementById('repos');
+    const checkoutBtn = document.getElementById('checkout');
+    const checkoutMsg = document.getElementById('checkout-msg');
+    const runBtn = document.getElementById('run');
+    const repoInput = document.getElementById('repo');
+    const branchInput = document.getElementById('branch');
+    const runResult = document.getElementById('run-result');
+    const logsPre = document.getElementById('logs');
+
+    // Check for token in URL (from OAuth callback)
+    const urlParams = new URLSearchParams(window.location.search);
+    const token = urlParams.get('token') || localStorage.getItem('token');
+    if (token) {
+      localStorage.setItem('token', token);
+      loginDiv.classList.add('hidden');
+      dashboardDiv.classList.remove('hidden');
+      loadUser();
+      loadRepos();
+    }
+
+    document.getElementById('github-login').addEventListener('click', () => {
+      window.location.href = '/auth/github';
+    });
+
+    async function loadUser() {
+      // Decode token to get user info (simplified; in prod, fetch from /api/me)
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        userName.textContent = payload.githubId || 'User';
+      } catch (e) {
+        userName.textContent = 'User';
+      }
+    }
+
+    async function loadRepos() {
+      try {
+        const r = await fetch('/api/repos', {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const repos = await r.json();
+        if (!r.ok) throw new Error(repos.error);
+        reposDiv.innerHTML = repos.map(repo => `<div class="repo">${repo.full_name} (${repo.private ? 'Private' : 'Public'})</div>`).join('');
+      } catch (err) {
+        reposDiv.innerHTML = `<p style="color:crimson">Error loading repos: ${err.message}</p>`;
+      }
+    }
+
+    checkoutBtn.addEventListener('click', async () => {
+      const email = prompt('Enter your email for subscription:');
+      if (!email) return;
+      checkoutMsg.textContent = 'Creating Checkout session...';
+      try {
+        const r = await fetch('/api/billing/checkout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || JSON.stringify(j));
+        // Redirect to Stripe hosted page
+        if (j.url) {
+          window.location = j.url;
+        } else {
+          checkoutMsg.textContent = 'Checkout session created but no URL found.';
+        }
+      } catch (err) {
+        checkoutMsg.innerHTML = '<span style="color:crimson">Error: ' + err.message + '</span>';
+      }
+    });
+
+    let pollTimer = null;
+
+    runBtn.addEventListener('click', async () => {
+      clearInterval(pollTimer);
+      logsPre.textContent = '';
+      runResult.textContent = 'Enqueuing...';
+      const body = {
+        repoFullName: repoInput.value || undefined,
+        branch: branchInput.value || undefined,
+        steps: ['echo "Hello from DCD!"', 'node -v', 'npm -v']
+      };
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+      try {
+        const r = await fetch('/api/pipeline/run', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify(body)
+        });
+        const j = await r.json();
+        if (!r.ok) throw new Error(j.error || JSON.stringify(j));
+        runResult.textContent = `Job ${j.id} queued`;
+        // Poll
+        pollTimer = setInterval(async () => {
+          const s = await fetch('/api/pipeline/job/' + j.id).then(r => r.json()).catch(() => ({}));
+          runResult.textContent = `State: ${s.state || 'unknown'} | Progress: ${JSON.stringify(s.progress || {})}`;
+          const logs = await fetch('/api/pipeline/logs/' + j.id).then(r => r.text()).catch(() => '');
+          logsPre.textContent = logs;
+          if (s.state === 'completed' || s.state === 'failed') clearInterval(pollTimer);
+        }, 1500);
+      } catch (err) {
+        runResult.innerHTML = '<span style="color:crimson">Error: ' + err.message + '</span>';
+      }
+    });
+  </script>
+</body>
+</html>
