@@ -5,8 +5,14 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
 jobs:
   deploy:
+    environment: github-pages
     runs-on: ubuntu-latest
 
     steps:
