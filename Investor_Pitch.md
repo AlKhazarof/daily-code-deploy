@@ -75,4 +75,4 @@ DailyCodeDeploy is a minimalist and affordable CI/CD service tailored for small 
 ## Contact
 - **Owner:** Nick Scherbakov
 - **Repository:** [GitHub - DailyCodeDeploy](https://github.com/NickScherbakov/daily-code-deploy)
-- **Email:** nick.scherbakov@example.com
+- **Email:** n.a.scherbakov@outlook.com
