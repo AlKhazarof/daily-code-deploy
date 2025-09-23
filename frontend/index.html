@@ -33,7 +33,11 @@ layout: default
     <button id="checkout">Subscribe with Stripe</button>
     <div id="checkout-msg" class="muted"></div>
     <hr/>
-    <h3>Run a demo pipeline</h3>
+    <h3>Referral Program</h3>
+    <p class="muted">Share your referral link to earn bonuses! Invited users get free premium access.</p>
+    <input id="referral-link" readonly style="width: 100%; max-width: 420px;" />
+    <button id="copy-link">Copy Link</button>
+    <div id="referral-msg" class="muted"></div>
     <p class="muted">If you’re logged in with GitHub, you can also enter repo as owner/name to clone.</p>
     <input id="repo" placeholder="owner/name (optional)" />
     <input id="branch" placeholder="branch (optional, e.g. main)" />
@@ -54,17 +58,21 @@ layout: default
     const branchInput = document.getElementById('branch');
     const runResult = document.getElementById('run-result');
     const logsPre = document.getElementById('logs');
+    const referralLink = document.getElementById('referral-link');
+    const copyBtn = document.getElementById('copy-link');
+    const referralMsg = document.getElementById('referral-msg');
 
-    // Check for token in URL (from OAuth callback)
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get('token') || localStorage.getItem('token');
-    if (token) {
-      localStorage.setItem('token', token);
-      loginDiv.classList.add('hidden');
-      dashboardDiv.classList.remove('hidden');
-      loadUser();
-      loadRepos();
+    // Check for referral
+    const ref = urlParams.get('ref');
+    if (ref) {
+      referralMsg.textContent = `Welcome! You were referred by ${ref}. Enjoy free premium access!`;
     }
+
+    copyBtn.addEventListener('click', () => {
+      referralLink.select();
+      document.execCommand('copy');
+      referralMsg.textContent = 'Link copied to clipboard!';
+    });
 
     document.getElementById('github-login').addEventListener('click', () => {
       // Mock login for demo
@@ -84,6 +92,11 @@ layout: default
       } catch (e) {
         userName.textContent = 'User';
       }
+      // Generate referral link
+      const userId = userName.textContent;
+      const baseUrl = window.location.origin + window.location.pathname;
+      const referralUrl = `${baseUrl}?ref=${userId}`;
+      referralLink.value = referralUrl;
     }
 
     async function loadRepos() {
