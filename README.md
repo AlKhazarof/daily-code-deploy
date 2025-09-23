@@ -1,99 +1,99 @@
-# DailyCodeDeploy — Автоматизированный CI/CD для разработчиков
+# DailyCodeDeploy — Automated CI/CD for Developers
 
-**Простой, мощный и доступный сервис для непрерывной интеграции и развертывания.** Автоматизируйте свои пайплайны, интегрируйтесь с GitHub и экономьте время на разработке. Идеально для фрилансеров, стартапов и команд.
+**Simple, powerful, and affordable service for continuous integration and deployment.** Automate your pipelines, integrate with GitHub, and save time on development. Perfect for freelancers, startups, and teams.
 
-🌐 **Попробуйте демо прямо сейчас:** [daily-code-deploy.github.io](https://nickscherbakov.github.io/daily-code-deploy)  
-📧 **Свяжитесь с нами:** nick@example.com (или через GitHub Issues)
+🌐 **Try the demo right now:** [daily-code-deploy.github.io](https://nickscherbakov.github.io/daily-code-deploy)  
+📧 **Contact us:** nick@example.com (or via GitHub Issues)
 
-## 🚀 Что такое DailyCodeDeploy?
+## 🚀 What is DailyCodeDeploy?
 
-DailyCodeDeploy — это SaaS-платформа, которая упрощает CI/CD. Подключите свои GitHub-репозитории, запускайте автоматические тесты и деплой с помощью простых команд. Интеграция с Stripe для подписок, Redis для очередей — всё готово к использованию.
+DailyCodeDeploy is a SaaS platform that simplifies CI/CD. Connect your GitHub repositories, run automated tests and deployments with simple commands. Integration with Stripe for subscriptions, Redis for queues — everything is ready to use.
 
-### Ключевые преимущества:
-- **Легкая настройка:** Запустите пайплайн за минуты, без сложной инфраструктуры.
-- **Интеграция с GitHub:** Поддержка публичных и приватных репозиториев через OAuth.
-- **Масштабируемость:** От маленьких проектов до enterprise-решений.
-- **Безопасность:** Локальное выполнение с возможностью песочницы.
-- **Монетизация:** Freemium-модель — бесплатно для базовых функций, премиум за расширения.
+### Key Benefits:
+- **Easy Setup:** Launch a pipeline in minutes, without complex infrastructure.
+- **GitHub Integration:** Support for public and private repositories via OAuth.
+- **Scalability:** From small projects to enterprise solutions.
+- **Security:** Local execution with sandboxing options.
+- **Monetization:** Freemium model — free for basic features, premium for extensions.
 
-## 🎯 Для кого это?
+## 🎯 Who is this for?
 
-1. **Фрилансеры и индивидуальные разработчики:** Автоматизируйте деплой без затрат на дорогие инструменты.
-2. **Стартапы:** Быстрый запуск CI/CD для фокуса на продукте.
-3. **Маленькие и средние команды:** Простая альтернатива Jenkins/GitLab.
-4. **Образовательные учреждения:** Учебный инструмент для изучения DevOps.
-5. **Open-source разработчики:** Бесплатная автоматизация для проектов.
-6. **Компании:** Основа для коммерческих CI/CD-сервисов.
+1. **Freelancers and Individual Developers:** Automate deployments without expensive tools.
+2. **Startups:** Quick CI/CD launch to focus on the product.
+3. **Small and Medium Teams:** Simple alternative to Jenkins/GitLab.
+4. **Educational Institutions:** Teaching tool for learning DevOps.
+5. **Open-Source Developers:** Free automation for projects.
+6. **Companies:** Foundation for commercial CI/CD services.
 
-## 💰 Цены и подписки
-- **Бесплатно:** Базовые пайплайны, 1 репозиторий, ограниченные логи.
-- **Pro ($49/месяц):** Неограниченные репозитории, аналитика, приоритетная поддержка, интеграции (Slack, Discord).
-- **Enterprise:** Кастомные планы — свяжитесь для предложения.
+## 💰 Pricing and Subscriptions
+- **Free:** Basic pipelines, 1 repository, limited logs.
+- **Pro ($49/month):** Unlimited repositories, analytics, priority support, integrations (Slack, Discord).
+- **Enterprise:** Custom plans — contact us for a quote.
 
-Подпишитесь через Stripe в демо или напишите нам!
+Subscribe via Stripe in the demo or email us!
 
-## 📖 Как начать (онлайн-демо)
-1. Перейдите на [демо-сайт](https://nickscherbakov.github.io/daily-code-deploy).
-2. Авторизуйтесь через GitHub.
-3. Выберите репозиторий и запустите пайплайн.
-4. Для премиум — оформите подписку.
+## 📖 How to Get Started (Online Demo)
+1. Visit the [demo site](https://nickscherbakov.github.io/daily-code-deploy).
+2. Authenticate with GitHub.
+3. Select a repository and run a pipeline.
+4. For premium — sign up for a subscription.
 
-## 🛠 Локальная установка (для разработчиков)
-Если хотите запустить локально:
+## 🛠 Local Setup (for Developers)
+If you want to run locally:
 
-1. Клонируйте репозиторий:
+1. Clone the repository:
    ```bash
    git clone https://github.com/NickScherbakov/daily-code-deploy.git
    cd daily-code-deploy
    ```
 
-2. Настройте переменные:
+2. Set up environment variables:
    ```bash
    cp backend/.env.example backend/.env
-   # Добавьте STRIPE_SECRET_KEY для реальных платежей
+   # Add STRIPE_SECRET_KEY for real payments
    ```
 
-3. Установите зависимости:
+3. Install dependencies:
    ```bash
    npm install
    cd backend && npm install
    ```
 
-4. Запустите:
+4. Run:
    ```bash
-   npm start  # Сервер на http://localhost:5000
+   npm start  # Server at http://localhost:5000
    ```
 
-5. Для runner (с Redis):
+5. For runner (with Redis):
    ```bash
    docker run --rm -p 6379:6379 redis:7-alpine
    cd backend && npm run runner
    ```
 
-Тестируйте с curl:
+Test with curl:
 ```bash
 curl -X POST http://localhost:5000/api/pipeline/run -H "Content-Type: application/json" -d '{"steps":["echo hello"]}'
 ```
 
-## 🔧 Фичи и API
-- **Пайплайны:** Запуск команд, логи в реальном времени.
-- **Интеграции:** GitHub OAuth, Stripe billing, Redis queue.
-- **Безопасность:** Песочница для выполнения, таймауты.
-- API эндпоинты: `/api/pipeline/run`, `/api/repos`, `/api/billing/checkout`.
+## 🔧 Features and API
+- **Pipelines:** Run commands, real-time logs.
+- **Integrations:** GitHub OAuth, Stripe billing, Redis queue.
+- **Security:** Sandboxing for execution, timeouts.
+- API endpoints: `/api/pipeline/run`, `/api/repos`, `/api/billing/checkout`.
 
-## 📈 Следующие шаги
-- Вебхуки GitHub для авто-запуска.
-- База данных вместо JSON.
-- Дашборды и аналитика.
-- Реферальная программа для роста.
+## 📈 Next Steps
+- GitHub webhooks for auto-triggers.
+- Database instead of JSON.
+- Dashboards and analytics.
+- Referral program for growth.
 
-## 🤝 Вклад и поддержка
-- Открытый исходный код — форкните и улучшайте!
-- Issues для багов, Discussions для идей.
-- Мы ищем партнёров — напишите, если хотите сотрудничать.
+## 🤝 Contributions and Support
+- Open source — fork and improve!
+- Issues for bugs, Discussions for ideas.
+- We're looking for partners — message us if you want to collaborate.
 
-**Зарабатывайте с нами:** Если вы разработчик, присоединяйтесь к проекту. Для бизнеса — свяжитесь для интеграций.
+**Earn with us:** If you're a developer, join the project. For business — contact for integrations.
 
 ---
 
-*DailyCodeDeploy — ваш путь к эффективному DevOps. Попробуйте сегодня!* 🚀
+*DailyCodeDeploy — your path to efficient DevOps. Try it today!* 🚀
