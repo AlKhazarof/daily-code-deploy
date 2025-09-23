@@ -3,7 +3,7 @@
 **Simple, powerful, and affordable service for continuous integration and deployment.** Automate your pipelines, integrate with GitHub, and save time on development. Perfect for freelancers, startups, and teams.
 
 🌐 **Try the demo right now:** [daily-code-deploy.github.io](https://nickscherbakov.github.io/daily-code-deploy)  
-📧 **Contact us:** nick@example.com (or via GitHub Issues)
+📧 **Contact us:** n.a.scherbakov@outlook.com (or via GitHub Issues)
 
 ## 🚀 What is DailyCodeDeploy?
 
