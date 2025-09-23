@@ -47,7 +47,8 @@ layout: default
   </div>
 
   <script>
-    const loginDiv = document.getElementById('login');
+    let token = localStorage.getItem('token');
+    const urlParams = new URLSearchParams(window.location.search);
     const dashboardDiv = document.getElementById('dashboard');
     const userName = document.getElementById('user-name');
     const reposDiv = document.getElementById('repos');
