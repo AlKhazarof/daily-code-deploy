@@ -82,7 +82,7 @@ We plan to register a domain for DailyCodeDeploy, and we want the name to reflec
 - Submit your suggestion in the repository's Issues with the tag "domain-contest".
 
 ### What Does the Winner Get?
-Nothing material. No prizes, bonuses, or mentions. But if your suggestion is chosen, the project and domain will bear that exact name. Your idea will become part of DailyCodeDeploy's history — forever.
+Nothing material. No prizes, bonuses, or mentions. But if your suggestion is chosen, the project and domain will bear that exact name. Your idea will become part of DailyCodeDeploy's history — forever. Plus, as a bonus, the winner gets free premium access for one year once subscriptions launch!
 
 ### Why Participate?
 - **Contribution to the Common Cause**: Your suggestion could define the face of a project used by hundreds of developers.
