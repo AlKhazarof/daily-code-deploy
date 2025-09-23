@@ -62,7 +62,13 @@ DailyCodeDeploy is a minimalist and affordable CI/CD service tailored for small 
    - Expand to international markets.
    - Integration with AWS, Google Cloud, Azure.
 
+**Roadmap Overview:** Q4 2025 - Beta release with enhanced demo and community feedback. Q1 2026 - Full SaaS launch with subscriptions. Ongoing: Open-source contributions and feature development based on user input.
+
 ---
+
+## Important Disclaimer
+
+DailyCodeDeploy is currently an MVP (Minimum Viable Product) in active development. We're seeking feedback, contributors, and early investors to shape the future. There are no guarantees of success, financial returns, or product completion—invest at your own risk. This is an open-source project driven by community effort. Check our [GitHub repo](https://github.com/NickScherbakov/daily-code-deploy) for the latest updates and roadmap.
 
 ## Why Invest in DailyCodeDeploy? (Especially for Developers)
 
