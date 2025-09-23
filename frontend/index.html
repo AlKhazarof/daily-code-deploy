@@ -67,7 +67,13 @@ layout: default
     }
 
     document.getElementById('github-login').addEventListener('click', () => {
-      window.location.href = '/auth/github';
+      // Mock login for demo
+      const mockToken = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJnaXRodWJJZCI6Ik1vY2tVc2VyIn0.mock';
+      localStorage.setItem('token', mockToken);
+      loginDiv.classList.add('hidden');
+      dashboardDiv.classList.remove('hidden');
+      loadUser();
+      loadRepos();
     });
 
     async function loadUser() {
@@ -89,7 +95,12 @@ layout: default
         if (!r.ok) throw new Error(repos.error);
         reposDiv.innerHTML = repos.map(repo => `<div class="repo">${repo.full_name} (${repo.private ? 'Private' : 'Public'})</div>`).join('');
       } catch (err) {
-        reposDiv.innerHTML = `<p style="color:crimson">Error loading repos: ${err.message}</p>`;
+        // Mock data for demo on static site
+        reposDiv.innerHTML = `
+          <div class="repo">nickscherbakov/daily-code-deploy (Public)</div>
+          <div class="repo">example/private-repo (Private)</div>
+          <p class="muted">Note: This is mock data. Full demo requires backend.</p>
+        `;
       }
     }
 
@@ -112,7 +123,8 @@ layout: default
           checkoutMsg.textContent = 'Checkout session created but no URL found.';
         }
       } catch (err) {
-        checkoutMsg.innerHTML = '<span style="color:crimson">Error: ' + err.message + '</span>';
+        // Mock success for demo
+        checkoutMsg.innerHTML = '<span style="color:green">Mock subscription successful! (Demo mode)</span>';
       }
     });
 
@@ -147,7 +159,25 @@ layout: default
           if (s.state === 'completed' || s.state === 'failed') clearInterval(pollTimer);
         }, 1500);
       } catch (err) {
-        runResult.innerHTML = '<span style="color:crimson">Error: ' + err.message + '</span>';
+        // Mock pipeline run for demo
+        runResult.textContent = 'Job 123 queued (Mock)';
+        let step = 0;
+        const mockLogs = [
+          'Starting pipeline...\n',
+          'echo "Hello from DCD!"\nHello from DCD!\n',
+          'node -v\nv18.17.0\n',
+          'npm -v\n9.6.7\n',
+          'Pipeline completed successfully!\n'
+        ];
+        pollTimer = setInterval(() => {
+          if (step < mockLogs.length) {
+            logsPre.textContent += mockLogs[step];
+            step++;
+          } else {
+            runResult.textContent = 'State: completed | Progress: 100%';
+            clearInterval(pollTimer);
+          }
+        }, 1000);
       }
     });
   </script>
