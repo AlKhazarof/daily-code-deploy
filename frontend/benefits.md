@@ -87,6 +87,7 @@ Nothing material. No prizes, bonuses, or mentions. But if your suggestion is cho
 
 - Free premium access for one year once subscriptions launch.
 - Access to YandexGPT API credits worth $50 (for AI-powered development experiments).
+- Community-created prize fund: Followers can contribute ideas, resources, or funds to build a custom prize pool for the winner, voted on by the community.
 
 ### Why Participate?
 
