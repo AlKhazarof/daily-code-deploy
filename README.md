@@ -139,6 +139,7 @@ curl -X POST http://localhost:5000/api/pipeline/run -H "Content-Type: applicatio
 
 - Open source — fork and improve!
 - Issues for bugs, Discussions for ideas.
+- Community channels: Discord/Slack coming soon for discussions, AMAs, and collaboration.
 - We're looking for partners — message us if you want to collaborate.
 
 **Earn with us:** If you're a developer, join the project. For business — contact for integrations.
