@@ -8,6 +8,7 @@ on:
 permissions:
   contents: read
   issues: write
+  actions: read
 
 jobs:
   check-locks:
@@ -24,15 +25,27 @@ jobs:
           echo "output<<EOF" >> $GITHUB_OUTPUT
           cat lock-check-output.txt
           echo "EOF" >> $GITHUB_OUTPUT
-      - name: Create issue on lock detection
+      - name: Create issue on lock detection (REST)
         if: steps.findlocks.outputs.output && contains(steps.findlocks.outputs.output, 'Found lock:')
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          OWNER: ${{ github.repository_owner }}
         run: |
-          echo "Lock files detected — creating an issue"
+          echo "Lock files detected — creating an issue via REST API"
           TITLE="[CI] Git lock files detected in repository"
-          BODY=$(cat lock-check-output.txt | sed 's/^/\n/; s/"/\"/g')
-          gh issue create --title "$TITLE" --body "$BODY" || echo "gh create issue failed"
+          BODY=$(cat lock-check-output.txt | sed 's/^/\n/; s/"/\\"/g')
+          PAYLOAD=$(jq -n --arg title "$TITLE" --arg body "$BODY" --argjson labels '["lock-check","auto-created"]' '{title: $title, body: $body, labels: $labels}')
+          echo "Payload: $PAYLOAD"
+          curl -sS -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/$REPO/issues -d "$PAYLOAD" || echo "Issue creation failed"
+      - name: Optional webhook notification
+        if: ${{ secrets.LOCKS_WEBHOOK_URL != '' }} && (steps.findlocks.outputs.output && contains(steps.findlocks.outputs.output, 'Found lock:'))
+        env:
+          WEBHOOK_URL: ${{ secrets.LOCKS_WEBHOOK_URL }}
+        run: |
+          echo "Sending webhook notification to configured URL"
+          payload=$(jq -n --arg event "lock-detected" --arg repo "${{ github.repository }}" --arg details "$(cat lock-check-output.txt)" '{event: $event, repository: $repo, details: $details}')
+          curl -sS -X POST -H "Content-Type: application/json" -d "$payload" "$WEBHOOK_URL" || echo "Webhook post failed"
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
