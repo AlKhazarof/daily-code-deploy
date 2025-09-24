@@ -35,10 +35,26 @@ jobs:
           echo "Lock files detected — creating an issue via REST API"
           TITLE="[CI] Git lock files detected in repository"
           BODY=$(cat lock-check-output.txt | sed 's/^/\n/; s/"/\\"/g')
-          PAYLOAD=$(jq -n --arg title "$TITLE" --arg body "$BODY" --argjson labels '["lock-check","auto-created"]' '{title: $title, body: $body, labels: $labels}')
+          PAYLOAD=$(jq -n --arg title "$TITLE" --arg body "$BODY" --argjson labels '["lock-check","auto-created"]' --argjson assignees '["AlKhazarof"]' '{title: $title, body: $body, labels: $labels, assignees: $assignees}')
           echo "Payload: $PAYLOAD"
           curl -sS -X POST -H "Authorization: Bearer $GITHUB_TOKEN" -H "Accept: application/vnd.github+json" https://api.github.com/repos/$REPO/issues -d "$PAYLOAD" || echo "Issue creation failed"
-      - name: Optional webhook notification
+      - name: Slack notification (optional)
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }} && (steps.findlocks.outputs.output && contains(steps.findlocks.outputs.output, 'Found lock:'))
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          echo "Posting notification to Slack webhook"
+          payload=$(jq -n --arg text "Git lock files detected in ${{ github.repository }}\n\n$(cat lock-check-output.txt)" '{text: $text}')
+          curl -sS -X POST -H "Content-Type: application/json" -d "$payload" "$SLACK_WEBHOOK_URL" || echo "Slack post failed"
+      - name: Discord notification (optional)
+        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' }} && (steps.findlocks.outputs.output && contains(steps.findlocks.outputs.output, 'Found lock:'))
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          echo "Posting notification to Discord webhook"
+          payload=$(jq -n --arg content "Git lock files detected in ${{ github.repository }}\n\n$(cat lock-check-output.txt)" '{content: $content}')
+          curl -sS -X POST -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL" || echo "Discord post failed"
+      - name: Optional generic webhook notification
         if: ${{ secrets.LOCKS_WEBHOOK_URL != '' }} && (steps.findlocks.outputs.output && contains(steps.findlocks.outputs.output, 'Found lock:'))
         env:
           WEBHOOK_URL: ${{ secrets.LOCKS_WEBHOOK_URL }}

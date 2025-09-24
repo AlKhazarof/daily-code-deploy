@@ -35,6 +35,11 @@ To help prevent the "cannot lock ref 'HEAD'" error and other git ref issues, the
 - The weekly lock-check workflow will automatically create a GitHub issue when lock files are detected. The issue includes the lock-check output and is labeled `lock-check` and `auto-created`.
 - To enable webhook notifications (e.g., Slack, Discord), add a secret named `LOCKS_WEBHOOK_URL` in your repository settings. When present, the workflow will POST the lock-check output to that URL.
 
+Notification integrations
+
+- The workflow supports posting notifications to Slack or Discord. To enable, add repository secrets `SLACK_WEBHOOK_URL` or `DISCORD_WEBHOOK_URL` respectively.
+- The workflow will also create a GitHub issue and assign the default maintainer (`@AlKhazarof`). Adjust the assignee in the workflow if needed.
+
 Note: If the pre-commit hook blocks you, ensure no other git processes are running and run the check scripts to diagnose and remove stale locks safely.
 
 You can also use the provided Makefile on Unix-like systems for convenience:
