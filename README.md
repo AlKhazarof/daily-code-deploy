@@ -1,6 +1,11 @@
 # DailyCodeDeploy — Starter (demo)
 
-This is a minimal starter repo for the "DailyCodeDeploy" idea: a subscription-backed CI/CD service skeleton. It provides a simple subscribe endpoint that persists to a local JSON file. If you configure Stripe keys, it will attempt to create real Stripe customers/subscriptions.
+DailyCodeDeploy is a subscription-backed CI/CD playground that now ships with a **template marketplace** so builders can launch pipelines in seconds. Connect GitHub, pick a recipe (Node smoke test, Python quality gate, static site build), and watch results stream in real time.
+
+## Why it’s exciting
+- **Template marketplace**: Curated, copy-editable pipelines tuned for popular stacks.
+- **Instant GitHub onboarding**: OAuth login pulls your repos so you can clone private code securely.
+- **Stripe-ready billing**: Mock mode out-of-the-box, live mode with environment variables.
 
 ## Quick start (local)
 
@@ -22,10 +27,23 @@ This is a minimal starter repo for the "DailyCodeDeploy" idea: a subscription-ba
 4. Open the demo page:
    http://localhost:5000
 
+5. (Optional) Start the queue worker for pipelines:
+   cd backend && npm run runner
+
+## New: Pipeline templates
+Templates live in `backend/data/templates.json`. Each entry exposes:
+- `id`, `name`, `description`
+- `recommendedFor` tags for quick discovery
+- `steps`: shell commands executed in BullMQ worker
+- optional `env` overrides merged into the job
+
+The frontend fetches `/api/pipeline/templates`, renders cards, and lets users queue jobs with a single click. Jobs log template metadata so teammates can replay or remix popular flows.
+
 ## Dev notes
 - In mock mode (no STRIPE_SECRET_KEY), POST /api/subscribe stores a user in backend/data/users.json.
 - List users: GET /api/users
 - To enable real Stripe flows: set STRIPE_SECRET_KEY and STRIPE_PRICE_ID in backend/.env and restart.
+- Templates endpoint: GET /api/pipeline/templates
 
 ## Test with curl
 ```
@@ -48,10 +66,10 @@ This starter includes a minimal CI runner using BullMQ + Redis.
    npm --prefix backend run runner
    # or: cd backend && npm run runner
 
-3) Enqueue a demo job:
+3) Enqueue a demo job (template-aware):
    curl -s -X POST http://localhost:5000/api/pipeline/run \
      -H "Content-Type: application/json" \
-     -d '{"steps":["echo hi","node -v","npm -v"]}'
+     -d '{"templateId":"node-smoke","repoFullName":"OWNER/REPO"}'
 
 4) Poll status & logs:
    curl -s http://localhost:5000/api/pipeline/job/<JOB_ID>
@@ -64,6 +82,7 @@ This starter includes a minimal CI runner using BullMQ + Redis.
 ### Cloning a repo
 - If you’re logged in with GitHub (via the landing page → Login with GitHub), enter owner/name and optional branch, then “Run pipeline”. Private repos require stored OAuth token (already saved after login).
 - Public repos work without login if the repo is public.
+- Jobs now log the template used, making it easy to audit or replay.
 
 ### Notes
 - This is a demo runner; it executes shell commands provided by the request. In production, lock this down:
@@ -72,11 +91,13 @@ This starter includes a minimal CI runner using BullMQ + Redis.
   - Resource limits and timeouts.
 - Logs are written to backend/tmp/jobs/<jobId>/log.txt
 
-## Next steps (recommended)
+## Growth roadmap ideas
+- Launch community template gallery (PRs welcome in `backend/data/templates.json`).
 - Add GitHub webhooks for push-triggered builds.
 - Replace local storage with a durable DB (Postgres/Mongo).
 - Implement user dashboards, pipeline history, and billing analytics.
-- Add referral program and marketing landing page.
+- Introduce referral program, Zapier integration, and weekly digests.
+- Provide AI-assisted pipeline authoring and step suggestions.
 
 ## Monetization note
 - If you price at $10/month, to hit $100/day (~$3k/month), you need ~300 paying monthly subscribers. Consider enterprise plans, add-ons, or usage-based billing to increase ARPU and reduce required user count.

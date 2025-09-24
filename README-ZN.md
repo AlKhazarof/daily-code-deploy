@@ -2,7 +2,12 @@
 
 # DailyCodeDeploy — 入门（示例）
 
-这是关于“DailyCodeDeploy”想法的最小示例仓库：一个以订阅为基础的 CI/CD 服务骨架。它提供了一个简单的订阅端点，并将订阅数据持久化到本地 JSON 文件。如果你配置了 Stripe 密钥，它会尝试创建真实的 Stripe 客户/订阅。
+这是关于“DailyCodeDeploy”想法的最小示例仓库：一个以订阅为基础的 CI/CD 服务骨架。现在它提供了一个**流水线模板市场**，让你可以一键运行针对常见技术栈（Node.js、Python、静态站点等）的示例流程。它提供了一个简单的订阅端点，并将订阅数据持久化到本地 JSON 文件。如果你配置了 Stripe 密钥，它会尝试创建真实的 Stripe 客户/订阅。
+
+## 最新亮点
+- **模板市场**：从 `backend/data/templates.json` 中挑选预设流水线，也可以自定义扩展。
+- **GitHub 快速接入**：OAuth 登录后可拉取私有仓库并安全克隆。
+- **Stripe 模拟/生产模式**：未配置秘钥时使用 Mock，配置后即可对接真实支付流程。
 
 ## 快速开始（本地）
 
@@ -24,10 +29,14 @@
 4. 打开演示页面：
    http://localhost:5000
 
+5. （可选）启动流水线 Runner：
+   cd backend && npm run runner
+
 ## 开发说明
 - 在模拟模式下（未设置 STRIPE_SECRET_KEY），向 POST /api/subscribe 发送请求会将用户存储在 `backend/data/users.json` 中。
 - 列出用户：GET /api/users
 - 若要启用真实的 Stripe 流程：在 `backend/.env` 中设置 STRIPE_SECRET_KEY 和 STRIPE_PRICE_ID 并重启服务。
+- 模板接口：GET /api/pipeline/templates
 
 ## 使用 curl 测试
 ```
@@ -50,10 +59,10 @@ curl -s http://localhost:5000/api/users
    npm --prefix backend run runner
    # 或：cd backend && npm run runner
 
-3) 入队一个示例作业：
+3) 入队一个示例作业（模板支持）：
    curl -s -X POST http://localhost:5000/api/pipeline/run \
      -H "Content-Type: application/json" \
-     -d '{"steps":["echo hi","node -v","npm -v"]}'
+     -d '{"templateId":"node-smoke","repoFullName":"OWNER/REPO"}'
 
 4) 轮询状态与日志：
    curl -s http://localhost:5000/api/pipeline/job/<JOB_ID>

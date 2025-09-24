@@ -11,29 +11,50 @@
     .muted { color: #666; font-size: 14px; }
     .hidden { display: none; }
     .repo { padding: 8px; border-bottom: 1px solid #f0f0f0; }
+    .pill { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; background:#eef; color:#345; margin-right:4px; margin-bottom:4px; }
+    .templates { margin-top:12px; }
+    .template-card { border:1px solid #e6e6f0; border-radius:8px; padding:12px; margin-bottom:12px; cursor:pointer; transition:box-shadow .2s ease, border-color .2s ease; }
+    .template-card.selected { border-color:#4e5af7; box-shadow:0 4px 16px rgba(78,90,247,0.15); }
+    .template-title { font-weight:600; margin-bottom:4px; }
+    .template-meta { font-size:13px; color:#555; margin-bottom:8px; }
+    .cta { background:#4e5af7; color:white; border:none; border-radius:6px; padding:10px 16px; font-size:16px; cursor:pointer; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+    .cta:hover { background:#3643c7; }
+    .pill.green { background:#e7f9ef; color:#13733f; }
+    .pill.gray { background:#f5f5f7; color:#555; }
+    .section-title { margin-top:0; margin-bottom:6px; }
+    .grid { display:grid; gap:16px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); }
   </style>
 </head>
 <body>
   <div id="login" class="card">
     <h1>DailyCodeDeploy — Demo</h1>
-    <p class="muted">Log in with GitHub to connect repos and subscribe.</p>
-    <button id="github-login">Login with GitHub</button>
+    <p class="muted">A deploy automation playground with curated pipeline templates.</p>
+    <button id="github-login" class="cta">Login with GitHub</button>
+    <p class="muted" style="margin-top:12px;">Prefer to explore first? Scroll down to preview popular instant pipelines.</p>
   </div>
 
   <div id="dashboard" class="card hidden">
-    <h2>Welcome, <span id="user-name"></span>!</h2>
-    <p class="muted">Your repos:</p>
-    <div id="repos"></div>
+    <h2 class="section-title">Welcome, <span id="user-name"></span> 👋</h2>
+    <div class="grid">
+      <div>
+        <p class="muted">Your repos (auto refreshed from GitHub):</p>
+        <div id="repos"></div>
+      </div>
+      <div>
+        <p class="muted">Launch a curated pipeline:</p>
+        <div id="templates" class="templates"></div>
+      </div>
+    </div>
     <hr/>
-    <p class="muted">Subscribe (Stripe Checkout)</p>
-    <button id="checkout">Subscribe with Stripe</button>
+    <p class="muted">Upgrade to unlock unlimited runs, artifacts, and team seats.</p>
+    <button id="checkout" class="cta">Subscribe with Stripe</button>
     <div id="checkout-msg" class="muted"></div>
     <hr/>
-    <h3>Run a demo pipeline</h3>
-    <p class="muted">If you’re logged in with GitHub, you can also enter repo as owner/name to clone.</p>
+    <h3>Run a custom pipeline</h3>
+    <p class="muted">Select a template above or configure your own. Provide repo info to clone within the job sandbox.</p>
     <input id="repo" placeholder="owner/name (optional)" />
     <input id="branch" placeholder="branch (optional, e.g. main)" />
-    <button id="run">Run pipeline</button>
+    <button id="run" class="cta">Run pipeline</button>
     <div id="run-result" class="muted"></div>
     <pre id="logs" style="max-height:300px;overflow:auto;background:#fafafa;border:1px solid #eee;padding:8px"></pre>
   </div>
@@ -50,6 +71,8 @@
     const branchInput = document.getElementById('branch');
     const runResult = document.getElementById('run-result');
     const logsPre = document.getElementById('logs');
+    const templatesContainer = document.getElementById('templates');
+    let templateSelection = null;
 
     // Check for token in URL (from OAuth callback)
     const urlParams = new URLSearchParams(window.location.search);
@@ -60,6 +83,9 @@
       dashboardDiv.classList.remove('hidden');
       loadUser();
       loadRepos();
+      loadTemplates();
+    } else {
+      loadTemplates();
     }
 
     document.getElementById('github-login').addEventListener('click', () => {
@@ -86,6 +112,45 @@
         reposDiv.innerHTML = repos.map(repo => `<div class="repo">${repo.full_name} (${repo.private ? 'Private' : 'Public'})</div>`).join('');
       } catch (err) {
         reposDiv.innerHTML = `<p style="color:crimson">Error loading repos: ${err.message}</p>`;
+      }
+    }
+
+    async function loadTemplates() {
+      try {
+        const r = await fetch('/api/pipeline/templates');
+        const templates = await r.json();
+        if (!r.ok) throw new Error(templates.error || 'Failed to load templates');
+        if (!Array.isArray(templates) || !templates.length) {
+          templatesContainer.innerHTML = '<p class="muted">No templates available yet. Define yours under backend/data/templates.json.</p>';
+          return;
+        }
+        templatesContainer.innerHTML = templates.map((tpl) => {
+          const recommendPills = Array.isArray(tpl.recommendedFor)
+            ? tpl.recommendedFor.map((tag) => `<span class="pill">${tag}</span>`).join('')
+            : '';
+          const envPill = tpl.hasEnv ? '<span class="pill green">Env ready</span>' : '<span class="pill gray">No env vars</span>';
+          return `
+            <div class="template-card" data-id="${tpl.id}">
+              <div class="template-title">${tpl.name}</div>
+              <div class="template-meta">${tpl.description}</div>
+              <div>${envPill} ${recommendPills}</div>
+              <details style="margin-top:8px;">
+                <summary class="muted">View Steps</summary>
+                <pre style="background:#f4f4f8;padding:8px;border-radius:6px;overflow:auto;">${(tpl.steps || []).join('\n')}</pre>
+              </details>
+            </div>
+          `;
+        }).join('');
+        templates.forEach((tpl) => {
+          const node = templatesContainer.querySelector(`[data-id="${tpl.id}"]`);
+          node.addEventListener('click', () => {
+            templatesContainer.querySelectorAll('.template-card').forEach((card) => card.classList.remove('selected'));
+            node.classList.add('selected');
+            templateSelection = tpl;
+          });
+        });
+      } catch (err) {
+        templatesContainer.innerHTML = `<p style="color:crimson">Failed to load templates: ${err.message}</p>`;
       }
     }
 
@@ -121,7 +186,8 @@
       const body = {
         repoFullName: repoInput.value || undefined,
         branch: branchInput.value || undefined,
-        steps: ['echo "Hello from DCD!"', 'node -v', 'npm -v']
+        templateId: templateSelection?.id,
+        steps: templateSelection ? undefined : ['echo "Hello from DCD!"', 'node -v', 'npm -v']
       };
       const headers = { 'Content-Type': 'application/json' };
       if (token) headers['Authorization'] = `Bearer ${token}`;
@@ -133,7 +199,7 @@
         });
         const j = await r.json();
         if (!r.ok) throw new Error(j.error || JSON.stringify(j));
-        runResult.textContent = `Job ${j.id} queued`;
+        runResult.textContent = `Job ${j.id} queued${j.template ? ` • Template: ${j.template.name}` : ''}`;
         // Poll
         pollTimer = setInterval(async () => {
           const s = await fetch('/api/pipeline/job/' + j.id).then(r => r.json()).catch(() => ({}));

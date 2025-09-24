@@ -16,6 +16,79 @@ if (stripeKey) {
 const PORT = process.env.PORT || 5000;
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || `http://localhost:${PORT}`;
 const USERS_FILE = path.join(__dirname, 'data', 'users.json');
+const TEMPLATES_FILE = path.join(__dirname, 'data', 'templates.json');
+const FALLBACK_TEMPLATES = [
+  {
+    id: 'node-smoke',
+    name: 'Node.js Smoke Test',
+    description: 'Install dependencies and run the default npm test script.',
+    recommendedFor: ['Node.js', 'TypeScript', 'React'],
+    steps: [
+      "if [ -f package.json ]; then npm install; else echo 'package.json not found, skipping npm install'; fi",
+      "if [ -f package.json ]; then npm test -- --watch=false || npm test; else echo 'package.json not found, skipping npm test'; fi",
+    ],
+    env: { CI: 'true' },
+  },
+  {
+    id: 'python-quality',
+    name: 'Python Quality Gate',
+    description: 'Run linting and tests for a Python project with pytest.',
+    recommendedFor: ['Python', 'Django', 'FastAPI'],
+    steps: [
+      'python -m pip install --upgrade pip',
+      "if [ -f requirements.txt ]; then pip install -r requirements.txt; fi",
+      "if [ -f pyproject.toml ]; then pip install '.[test]' || true; fi",
+      'pytest',
+    ],
+    env: { PYTHONUNBUFFERED: '1' },
+  },
+  {
+    id: 'static-deploy',
+    name: 'Static Site Build',
+    description: 'Build a static site and prep an artifact directory for deployment.',
+    recommendedFor: ['Docs', 'Landing pages', 'Vite', 'Next.js'],
+    steps: [
+      "if [ -f package.json ]; then npm install; else echo 'package.json not found, skipping npm install'; fi",
+      "if [ -f package.json ]; then npm run build || npm run docs:build; else echo 'package.json not found, skipping build'; fi",
+      'ls -R',
+    ],
+    env: { NODE_ENV: 'production' },
+  },
+];
+
+async function readUsers() {
+  try {
+    const txt = await fs.readFile(USERS_FILE, 'utf8');
+    return JSON.parse(txt || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+async function writeUsers(users) {
+  await fs.mkdir(path.join(__dirname, 'data'), { recursive: true });
+  await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
+}
+
+async function readTemplates() {
+  try {
+    const txt = await fs.readFile(TEMPLATES_FILE, 'utf8');
+    const parsed = JSON.parse(txt);
+    if (Array.isArray(parsed) && parsed.length) return parsed;
+  } catch (err) {}
+  return FALLBACK_TEMPLATES;
+}
+
+function sanitizeTemplate(template) {
+  if (!template) return null;
+  const { id, name, description, recommendedFor, env } = template;
+  return {
+    id,
+    name,
+    description,
+    recommendedFor,
+    hasEnv: !!(env && Object.keys(env).length),
+  };
+}
 
 // Passport setup for GitHub OAuth
 if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) {
@@ -53,19 +126,6 @@ passport.deserializeUser(async (id, done) => {
   const user = users.find(u => u.id === id);
   done(null, user);
 });
-
-async function readUsers() {
-  try {
-    const txt = await fs.readFile(USERS_FILE, 'utf8');
-    return JSON.parse(txt || '[]');
-  } catch (e) {
-    return [];
-  }
-}
-async function writeUsers(users) {
-  await fs.mkdir(path.join(__dirname, 'data'), { recursive: true });
-  await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), 'utf8');
-}
 
 // Auth middleware
 function authenticate(req, res, next) {
@@ -273,7 +333,27 @@ app.post('/api/billing/webhook', express.raw({ type: 'application/json' }), (req
 // Body: { repoFullName?, branch?, steps?: string[], env?: Record<string,string> }
 app.post('/api/pipeline/run', authenticateOptional, async (req, res) => {
   try {
-    const { repoFullName, branch, steps, env } = req.body || {};
+    const { repoFullName, branch, steps, env, templateId } = req.body || {};
+
+    let selectedTemplate = null;
+    let finalSteps = Array.isArray(steps) ? steps.filter((s) => typeof s === 'string' && s.trim()) : [];
+    let finalEnv = env && typeof env === 'object' ? { ...env } : {};
+
+    if ((!finalSteps || !finalSteps.length) && templateId) {
+      const templates = await readTemplates();
+      selectedTemplate = templates.find((tpl) => tpl.id === templateId);
+      if (!selectedTemplate) {
+        return res.status(400).json({ error: 'template not found' });
+      }
+      finalSteps = Array.isArray(selectedTemplate.steps) ? selectedTemplate.steps : [];
+      if (selectedTemplate.env && typeof selectedTemplate.env === 'object') {
+        finalEnv = { ...selectedTemplate.env, ...finalEnv };
+      }
+    }
+
+    if (!finalSteps || !finalSteps.length) {
+      finalSteps = undefined; // Runner will fallback to demo steps
+    }
 
     // Optional: require auth if repoFullName provided (for private repos/token use)
     let token;
@@ -286,9 +366,11 @@ app.post('/api/pipeline/run', authenticateOptional, async (req, res) => {
     const job = await queue.add('build', {
       repoFullName,
       branch,
-      steps,
-      env,
-      token
+      steps: finalSteps,
+      env: finalEnv,
+      token,
+      template: sanitizeTemplate(selectedTemplate),
+      templateMeta: res.locals.templateInfo || sanitizeTemplate(selectedTemplate),
     }, {
       removeOnComplete: 50,
       removeOnFail: 50,
@@ -296,7 +378,7 @@ app.post('/api/pipeline/run', authenticateOptional, async (req, res) => {
       timeout: 15 * 60 * 1000 // 15 minutes
     });
 
-    res.json({ id: job.id, queue: require('./queue').queueName, host: require('os').hostname() });
+    res.json({ id: job.id, queue: require('./queue').queueName, host: require('os').hostname(), template: sanitizeTemplate(selectedTemplate) });
   } catch (err) {
     res.status(500).json({ error: err.message || String(err) });
   }

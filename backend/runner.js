@@ -49,6 +49,13 @@ async function cloneRepo({ repoFullName, branch = 'main', token, cwd, logFile })
   await appendLog(logFile, `Clone completed.\n`);
 }
 
+const DEFAULT_DEMO_STEPS = [
+  "echo '🚀 DailyCodeDeploy demo pipeline'",
+  "if [ -d .git ]; then git status; else echo 'No repo cloned for this job'; fi",
+  'node -v',
+  'npm -v',
+];
+
 const worker = new Worker(
   queueName,
   async (job) => {
@@ -65,15 +72,20 @@ const worker = new Worker(
       steps,       // array of shell commands
       env = {},    // environment vars for steps
       token,       // GitHub token if private repo
+      template,
     } = job.data || {};
+
+    const selectedTemplate = template || null;
 
     const effectiveSteps = Array.isArray(steps) && steps.length
       ? steps
-      : [
-          'echo "DailyCodeDeploy demo pipeline"',
-          'node -v',
-          'npm -v',
-        ];
+      : DEFAULT_DEMO_STEPS;
+
+    if (selectedTemplate) {
+      await appendLog(logFile, `\nSelected template: ${selectedTemplate.id} — ${selectedTemplate.name}\n`);
+    } else {
+      await appendLog(logFile, '\nUsing demo fallback steps.\n');
+    }
 
     // If repo is specified, clone it into jobDir
     if (repoFullName) {
