@@ -57,6 +57,13 @@ Note: If the pre-commit hook blocks you, ensure no other git processes are runni
 5. (Optional) Start the queue worker for pipelines:
    cd backend && npm run runner
 
+## Quick dev commands
+
+- Install deps: `npm install && cd backend && npm install && cd ..`
+- Install hooks (one-liner): `npm run hooks:setup`
+- Check for stale git locks: `npm run locks:check`
+- Run smoke tests locally (Linux): `npm run smoke:ci`
+
 ## New: Pipeline templates
 
 Templates live in `backend/data/templates.json`. Each entry exposes:

@@ -8,7 +8,10 @@
   ],
   "scripts": {
     "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
+    "dev": "nodemon backend/server.js",
+    "hooks:setup": "sh ./scripts/setup-hooks.sh || powershell -ExecutionPolicy Bypass -File ./scripts/setup-hooks.ps1",
+    "locks:check": "sh ./scripts/check-git-locks.sh || powershell -ExecutionPolicy Bypass -File ./scripts/check-git-locks.ps1",
+    "smoke:ci": "sh ./ci/smoke-test.sh"
   },
   "devDependencies": {
     "nodemon": "^2.0.22"
