@@ -1,0 +1,9 @@
+# CODEOWNERS — automatically request reviews from maintainers
+# Use GitHub usernames or team slugs (org/team)
+
+# Assign maintainers for the repo
+* @AlKhazarof
+
+# Assign maintainers for CI and scripts
+/.github/workflows/ @AlKhazarof
+/scripts/ @AlKhazarof

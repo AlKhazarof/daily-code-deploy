@@ -1,0 +1,20 @@
+name: 'PR Git Lock Check'
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  check-locks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run lock-check script
+        run: |
+          chmod +x ./scripts/check-git-locks.sh
+          ./scripts/check-git-locks.sh

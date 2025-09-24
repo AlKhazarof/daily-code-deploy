@@ -34,6 +34,17 @@ To help prevent the "cannot lock ref 'HEAD'" error and other git ref issues, the
 
 Note: If the pre-commit hook blocks you, ensure no other git processes are running and run the check scripts to diagnose and remove stale locks safely.
 
+You can also use the provided Makefile on Unix-like systems for convenience:
+
+```
+# Install hooks, check locks, or run smoke tests
+make install-hooks
+make check-locks
+make smoke
+```
+
+A CODEOWNERS file is present to automatically request reviews from maintainers for critical paths (CI, scripts).
+
 ## Quick start (local)
 
 1. Create .env from the example:
