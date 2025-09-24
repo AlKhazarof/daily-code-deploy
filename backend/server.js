@@ -16,6 +16,7 @@ if (stripeKey) {
 const PORT = process.env.PORT || 5000;
 const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || `http://localhost:${PORT}`;
 const USERS_FILE = path.join(__dirname, 'data', 'users.json');
+// Templates support (added)
 const TEMPLATES_FILE = path.join(__dirname, 'data', 'templates.json');
 const FALLBACK_TEMPLATES = [
   {
@@ -370,7 +371,7 @@ app.post('/api/pipeline/run', authenticateOptional, async (req, res) => {
       env: finalEnv,
       token,
       template: sanitizeTemplate(selectedTemplate),
-      templateMeta: res.locals.templateInfo || sanitizeTemplate(selectedTemplate),
+      templateMeta: selectedTemplate ? { id: selectedTemplate.id, name: selectedTemplate.name, stepCount: (selectedTemplate.steps||[]).length } : null,
     }, {
       removeOnComplete: 50,
       removeOnFail: 50,

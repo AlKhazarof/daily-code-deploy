@@ -49,6 +49,7 @@ async function cloneRepo({ repoFullName, branch = 'main', token, cwd, logFile })
   await appendLog(logFile, `Clone completed.\n`);
 }
 
+<<<<<<< HEAD
 const DEFAULT_DEMO_STEPS = [
   "echo '🚀 DailyCodeDeploy demo pipeline'",
   "if [ -d .git ]; then git status; else echo 'No repo cloned for this job'; fi",
@@ -56,6 +57,8 @@ const DEFAULT_DEMO_STEPS = [
   'npm -v',
 ];
 
+=======
+>>>>>>> upstream/main
 const worker = new Worker(
   queueName,
   async (job) => {
@@ -72,6 +75,7 @@ const worker = new Worker(
       steps,       // array of shell commands
       env = {},    // environment vars for steps
       token,       // GitHub token if private repo
+<<<<<<< HEAD
       template,
     } = job.data || {};
 
@@ -86,6 +90,17 @@ const worker = new Worker(
     } else {
       await appendLog(logFile, '\nUsing demo fallback steps.\n');
     }
+=======
+    } = job.data || {};
+
+    const effectiveSteps = Array.isArray(steps) && steps.length
+      ? steps
+      : [
+          'echo "DailyCodeDeploy demo pipeline"',
+          'node -v',
+          'npm -v',
+        ];
+>>>>>>> upstream/main
 
     // If repo is specified, clone it into jobDir
     if (repoFullName) {
