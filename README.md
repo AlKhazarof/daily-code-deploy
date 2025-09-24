@@ -10,6 +10,28 @@ Why it’s exciting:
 - Instant GitHub onboarding: OAuth login pulls your repos so you can clone private code securely.
 - Stripe-ready billing: mock mode out-of-the-box, live mode with environment variables.
 
+## Developer setup
+
+To help prevent the "cannot lock ref 'HEAD'" error and other git ref issues, the repository includes helper scripts and a pre-commit hook that detects stale git lock files.
+
+1. Install local hooks (recommended):
+   - Unix/macOS/WSL: `./scripts/setup-hooks.sh`
+   - Windows PowerShell (run as user): `powershell -ExecutionPolicy Bypass -File .\scripts\setup-hooks.ps1`
+
+   These scripts configure `core.hooksPath` to `.githooks` and make the pre-commit hook active for your clone.
+
+2. Inspect and remove stale lock files:
+   - Inspect: `./scripts/check-git-locks.sh` or `.\scripts\check-git-locks.ps1`
+   - Remove stale locks (careful): `./scripts/check-git-locks.sh --force` or `.\scripts\check-git-locks.ps1 -Force`
+
+   The scripts will refuse to remove locks if a git process is currently running to avoid corrupting repository state.
+
+3. CI & automation
+
+- A weekly GitHub Action (`.github/workflows/check-locks.yml`) runs the lock-check script and uploads a small report as an artifact. This helps repository maintainers detect recurring lock issues early.
+
+Note: If the pre-commit hook blocks you, ensure no other git processes are running and run the check scripts to diagnose and remove stale locks safely.
+
 ## Quick start (local)
 
 1. Create .env from the example:
