@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Pre-commit hook: prevent commits if Git lock files are present
+REPO_ROOT=$(git rev-parse --show-toplevel)
+"$REPO_ROOT/scripts/check-git-locks.sh" || {
+  echo "Pre-commit check failed: lock files detected. Run scripts/check-git-locks.sh --force if you are sure." >&2
+  exit 1
+}
+exit 0

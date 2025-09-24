@@ -30,6 +30,15 @@ if [ $exists -eq 0 ]; then
   exit 0
 fi
 
+# If locks exist and not forced, return non-zero so callers (like pre-commit) can abort
+if [ $FORCE -ne 1 ]; then
+  echo
+  echo "Git lock files detected. To remove stale locks run:"
+  echo "  $0 --force"
+  echo "Aborting operation to avoid corrupting repository refs."
+  exit 2
+fi
+
 # Check for running git processes
 echo
 echo "Checking for running git processes..."
@@ -39,18 +48,11 @@ else
   ps aux | grep -i git | grep -v grep || true
 fi
 
-if [ $FORCE -ne 1 ]; then
-  echo
-  echo "No action taken. To forcibly remove stale locks run:"
-  echo "  $0 --force"
-  exit 0
-fi
-
 # If forced, ensure no git process is running before removing locks
 if command -v pgrep >/dev/null 2>&1; then
   if pgrep -x git >/dev/null 2>&1; then
     echo "git process is currently running; aborting removal for safety." >&2
-    exit 2
+    exit 3
   fi
 fi
 
