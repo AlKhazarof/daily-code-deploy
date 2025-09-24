@@ -5,6 +5,10 @@ on:
     - cron: '0 3 * * 1' # Every Monday at 03:00 UTC
   workflow_dispatch:
 
+permissions:
+  contents: read
+  issues: write
+
 jobs:
   check-locks:
     runs-on: ubuntu-latest
@@ -12,18 +16,29 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Find Git lock files
+        id: findlocks
         run: |
           set -e
-          LOCKS=$(git ls-files --others --exclude-standard; true)
-          echo "Repository: $(pwd)"
-          # Run check script
           chmod +x ./scripts/check-git-locks.sh
-          ./scripts/check-git-locks.sh || true
+          ./scripts/check-git-locks.sh 2>&1 | tee lock-check-output.txt || true
+          echo "output<<EOF" >> $GITHUB_OUTPUT
+          cat lock-check-output.txt
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Create issue on lock detection
+        if: steps.findlocks.outputs.output && contains(steps.findlocks.outputs.output, 'Found lock:')
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "Lock files detected — creating an issue"
+          TITLE="[CI] Git lock files detected in repository"
+          BODY=$(cat lock-check-output.txt | sed 's/^/\n/; s/"/\"/g')
+          gh issue create --title "$TITLE" --body "$BODY" || echo "gh create issue failed"
       - name: Upload report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: git-locks-report
           path: |
+            lock-check-output.txt
             .git/*lock
             .git/refs/**/.*lock

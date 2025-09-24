@@ -2,6 +2,8 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Node.js](https://img.shields.io/badge/Node.js-18+-green.svg)](https://nodejs.org)
+[![CI & Deploy](https://github.com/AlKhazarof/daily-code-deploy/actions/workflows/deploy.yml/badge.svg)](https://github.com/AlKhazarof/daily-code-deploy/actions/workflows/deploy.yml)
+[![Weekly Lock Check](https://github.com/AlKhazarof/daily-code-deploy/actions/workflows/check-locks.yml/badge.svg)](https://github.com/AlKhazarof/daily-code-deploy/actions/workflows/check-locks.yml)
 
 DailyCodeDeploy is an open-source platform that democratizes DevOps. Our mission is to make deployment automation simple and accessible to developers of all levels.
 
